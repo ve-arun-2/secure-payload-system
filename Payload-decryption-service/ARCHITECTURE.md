@@ -4,21 +4,69 @@ A FastAPI backend (Python 3.13, Pydantic v2) that accepts RSA-encrypted partner 
 
 ---
 
-## 1. System context
+## 1. System HLD
 
 ```
- ┌──────────┐  1. GET /api/v1/keys/public        ┌───────────────────────────┐
- │ Frontend │ ─────────────────────────────────▶ │                           │
- │ / Partner│  2. encrypt JSON with public key   │   FastAPI service (N pods)│
- │          │  3. POST /api/v1/sandbox/          │                           │
- │          │        secure-payload              │                           │
- └──────────┘ ─────────────────────────────────▶ │                           │
-                                                 └───────┬───────────┬───────┘
-                                      token bucket (Lua) │           │ publish (confirmed)
-                                                         ▼           ▼
-                                                  ┌──────────┐  ┌──────────────┐
-                                                  │  Redis   │  │  RabbitMQ    │──▶ downstream consumers
-                                                  └──────────┘  └──────────────┘
+┌────────────────────┐
+│      React UI      │
+│  Payload Capture   │
+└─────────┬──────────┘
+          │
+          │ 1. Fetch Public Key
+          ▼
+┌────────────────────┐
+│ Key Management API │
+│ GET /keys/public   │
+└─────────┬──────────┘
+          │
+          │ 2. RSA Public Key
+          ▼
+┌────────────────────┐
+│ Encryption Service │
+│ Browser WebCrypto  │
+└─────────┬──────────┘
+          │
+          │ 3. Encrypted Payload
+          ▼
+┌────────────────────┐
+│ FastAPI Backend    │
+└─────────┬──────────┘
+          │
+          ▼
+┌────────────────────┐
+│ Rate Limiter       │
+│ Token Bucket       │
+└─────────┬──────────┘
+          │
+          ▼
+┌────────────────────┐
+│ Redis Cluster      │
+│ Shared Counters    │
+└─────────┬──────────┘
+          │
+          ▼
+┌────────────────────┐
+│ Request Validator  │
+└─────────┬──────────┘
+          │
+          ▼
+┌────────────────────┐
+│ Crypto Service     │
+│ RSA Decryption     │
+└─────────┬──────────┘
+          │
+          ▼
+┌────────────────────┐
+│ Payload Processor  │
+│ Validation         │
+│ Transaction ID     │
+└─────────┬──────────┘
+          │
+          ▼
+┌────────────────────┐
+│ Kafka/RabbitMq Producer
+└─────────┬──────────┘
+
 ```
 
 * **Frontend** fetches the public key, encrypts a small JSON document with RSA-OAEP (SHA-256), and submits it base64-encoded.
