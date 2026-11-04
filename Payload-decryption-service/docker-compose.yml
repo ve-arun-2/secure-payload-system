@@ -1,0 +1,21 @@
+services:
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    ports: ["5672:5672", "15672:15672"]
+
+  api:
+    build: .
+    depends_on: [redis, rabbitmq]
+    ports: ["8000:8000"]
+    environment:
+      APP_ENV: development
+      REDIS_URL: redis://redis:6379/0
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
+      RSA_PRIVATE_KEY_PATH: /keys/private.pem
+      RSA_PUBLIC_KEY_PATH: /keys/public.pem
+    volumes:
+      - ./keys:/keys:ro

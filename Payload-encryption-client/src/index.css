@@ -1,0 +1,21 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-navy-50: #f1f5fb;
+  --color-navy-100: #dde6f3;
+  --color-navy-600: #254a85;
+  --color-navy-700: #1c3b6b;
+  --color-navy-800: #162f56;
+  --color-navy-900: #0f2242;
+}
+
+body {
+  @apply bg-slate-100 text-slate-800 antialiased;
+  font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-spin {
+    animation-duration: 3s;
+  }
+}
