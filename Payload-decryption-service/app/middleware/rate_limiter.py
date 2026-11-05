@@ -13,12 +13,12 @@ import json
 import re
 from collections.abc import Iterable
 
-from starlette.responses import JSONResponse
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from app.core.exceptions import (
     CacheUnavailableException,
     RateLimitExceededException,
+    PayloadTooLargeException,
     error_response,
 )
 from app.core.logger import bind_log_context, get_logger
@@ -28,12 +28,7 @@ logger = get_logger(__name__)
 
 _PARTNER_ID_RE = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
 
-
-class _BodyTooLarge(Exception):
-    pass
-
-
-class RateLimiterMiddleware:
+class RateLimiterMiddleware: 
     def __init__(
         self,
         app: ASGIApp,
@@ -53,8 +48,9 @@ class RateLimiterMiddleware:
 
         try:
             body = await self._read_body(receive)
-        except _BodyTooLarge:
-            await JSONResponse({"error": "Request body too large"}, status_code=413)(scope, receive, send)
+            print("====", body)
+        except PayloadTooLargeException as exc:
+            await error_response(exc)(scope, receive, send)
             return
 
         partner_id = self._extract_partner_id(body)
@@ -87,7 +83,7 @@ class RateLimiterMiddleware:
             chunk = message.get("body", b"")
             size += len(chunk)
             if size > self._max_body_bytes:
-                raise _BodyTooLarge
+                raise PayloadTooLargeException
             chunks.append(chunk)
             if not message.get("more_body", False):
                 break

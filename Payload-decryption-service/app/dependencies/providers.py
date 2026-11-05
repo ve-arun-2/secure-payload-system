@@ -10,7 +10,7 @@ from dataclasses import dataclass
 
 from fastapi import Depends, Request
 
-from app.cache.redis_cache import RedisCache, RedisCacheImpl
+from app.cache.redis_cache import RedisCache
 from app.core.config import Settings
 from app.services.crypto_service import CryptoService, FileKeyProvider
 from app.services.payload_service import PayloadService
@@ -40,7 +40,7 @@ def build_container(settings: Settings) -> Container:
             password.get_secret_value().encode() if password else None,
         )
     )
-    cache = RedisCacheImpl(settings.REDIS_URL)
+    cache = RedisCache(settings.REDIS_URL)
     rabbitmq = RabbitMQService(settings.RABBITMQ_URL, settings.RABBITMQ_PUBLISH_TIMEOUT_SECONDS)
     return assemble_container(settings, crypto=crypto, cache=cache, publisher=rabbitmq)
 

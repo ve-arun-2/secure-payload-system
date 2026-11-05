@@ -7,13 +7,13 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from fastapi.testclient import TestClient
 
-from app.cache.redis_cache import InMemoryCache
 from app.core.config import Settings
 from app.core.exceptions import RabbitMQPublishException
 from app.dependencies.providers import Container, assemble_container
 from app.main import create_app
 from app.models.event_models import SecurePayloadReceivedEvent
 from app.services.crypto_service import CryptoService, FileKeyProvider
+from app.tests.fakes import InMemoryCache
 
 VALID_PAYLOAD = {"name": "John Doe", "aadhaar_number": "123456789012", "device_id": "DEVICE001"}
 

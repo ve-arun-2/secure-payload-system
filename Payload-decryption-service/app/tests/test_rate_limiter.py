@@ -1,10 +1,11 @@
 import pytest
 
-from app.cache.redis_cache import InMemoryCache, RedisCache
+from app.cache.redis_cache import RedisCache
 from app.core.exceptions import CacheUnavailableException, RateLimitExceededException
 from app.schemas.internal import BucketDecision, refill_tokens
 from app.services.rate_limit_service import RateLimitService
 from app.tests.conftest import ManualClock
+from app.tests.fakes import InMemoryCache
 
 
 # --- pure refill maths -----------------------------------------------------------------------

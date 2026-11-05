@@ -50,6 +50,9 @@ class CacheUnavailableException(AppException):
     status_code = 503
     error = "Rate limiter unavailable"
 
+class PayloadTooLargeException(AppException):
+    status_code = 413
+    error = "Request body too large"
 
 def error_response(exc: AppException, extra_headers: dict[str, str] | None = None) -> JSONResponse:
     body = {"error": exc.error}
