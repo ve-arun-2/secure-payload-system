@@ -7,7 +7,7 @@ which tests can swap using `app.dependency_overrides`.
 """
 
 from dataclasses import dataclass
-
+from typing import Annotated
 from fastapi import Depends, Request
 
 from app.cache.redis_cache import RedisCache
@@ -72,3 +72,6 @@ def get_crypto_service(container: Container = Depends(get_container)) -> CryptoS
 
 def get_payload_service(container: Container = Depends(get_container)) -> PayloadService:
     return container.payload_service
+
+
+PayloadServiceDep = Annotated[PayloadService, Depends(get_payload_service)]

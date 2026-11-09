@@ -72,7 +72,9 @@ class PayloadService:
             raise InvalidPayloadException("decrypted JSON is not an object")
 
         try:
-            return DecryptedPayload.model_validate(data)
+            print("Data :", data)
+            pydentic_data = DecryptedPayload.model_validate(data)
+            return pydentic_data
         except ValidationError as exc:
             # Log field names only: pydantic's messages/inputs may contain the Aadhaar number.
             fields = sorted({str(err["loc"][0]) if err["loc"] else "<root>" for err in exc.errors()})

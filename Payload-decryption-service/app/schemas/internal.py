@@ -27,12 +27,6 @@ class DecryptedPayload(BaseModel):
             raise ValueError("aadhaar_number must be exactly 12 digits")
         return value.strip()
 
-    def __repr__(self) -> str:  # keep PII out of accidental repr()/log calls
-        return "DecryptedPayload(<redacted>)"
-
-    __str__ = __repr__
-
-
 @dataclass(frozen=True, slots=True)
 class BucketDecision:
     """Result of one token-bucket consumption attempt."""

@@ -62,17 +62,9 @@ Details: [Payload-decryption-service/ARCHITECTURE.md](Payload-decryption-service
 | `503` | Redis or RabbitMQ unavailable |
 
 
-## Things to know before using this for real
-
-The backend's own checklist is in [ARCHITECTURE.md §8](Payload-decryption-service/ARCHITECTURE.md). The main points:
-
-- **No authentication.** `partner_id` is self-declared, so the rate limit is only as trustworthy as the caller. Add API keys, mTLS or signed requests.
-- **No replay protection.** Add a nonce or timestamp inside the encrypted payload.
-- **Mock keys are for development only.** Load production keys from a secrets manager or HSM, and add key rotation (for example a `kid`).
-- **The event carries personal data.** Use TLS and access control on the queue, enable `MASK_AADHAAR_IN_EVENTS`, or tokenise for consumers.
-- **RSA payload size limit.** RSA-OAEP/SHA-256 encrypts at most `key bytes − 66` bytes (190 for a 2048-bit key). The client caps field lengths to stay within that. Larger payloads need hybrid encryption (an RSA-wrapped AES-GCM key).
-- **Redis Lua script and RabbitMQ topology are untested against real servers.** The tests use in-memory fakes, so run an integration check with `docker compose`.
-- **`/health` is liveness only.** Add a readiness probe that checks Redis and RabbitMQ.
+## Things can be improved for production
+- **Mock keys are for development only.** Load production keys from a secrets manager or KMS key, and add key rotation.
+- **RSA payload size limit.** RSA-OAEP/SHA-256 encrypts at most `key bytes − 66` bytes (190 for a 2048-bit key). The client caps field lengths to stay within that. Larger payloads need hybrid encryption (an RSA + AES-GCM key).
 - **Metrics and tracing are placeholders.**
 
 ## Repository layout
