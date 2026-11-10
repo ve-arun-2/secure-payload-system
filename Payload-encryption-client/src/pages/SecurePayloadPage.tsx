@@ -4,10 +4,10 @@ import { LoadingOverlay, type ProcessingStep } from '../components/LoadingOverla
 import { PageHeader } from '../components/PageHeader';
 import { SecurePayloadForm } from '../components/SecurePayloadForm';
 import { SuccessResult } from '../components/SuccessResult';
-import { useEncryptPayload } from '../hooks/useEncryptPayload';
-import { usePublicKey } from '../hooks/usePublicKey';
-import { useSubmitPayload } from '../hooks/useSubmitPayload';
+import { getPublicKey } from '../api/keysApi';
+import { submitEncryptedPayload } from '../api/payloadApi';
 import type { SecurePayloadFormValues } from '../schemas/securePayloadSchema';
+import { encryptInWorker } from '../services/workerService';
 import { AppError, ERROR_MESSAGES } from '../types/api';
 import type { SubmissionResult } from '../types/payload';
 
@@ -21,26 +21,15 @@ function toUserMessage(error: unknown): string {
 }
 
 export function SecurePayloadPage() {
-  const keyMutation = usePublicKey();
-  const encryptMutation = useEncryptPayload();
-  const submitMutation = useSubmitPayload();
-
-  const isFetchingKey = keyMutation.isPending;
-  const isEncrypting = encryptMutation.isPending;
-  const isSubmitting = submitMutation.isPending;
-
-  // Mutations go idle for an instant between steps; `step` keeps the overlay stable across that gap.
+  // `step` drives both the loading overlay and the disabled state of the form.
   const [step, setStep] = useState<ProcessingStep | null>(null);
   const [result, setResult] = useState<SubmissionResult | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const isProcessing = step !== null || isFetchingKey || isEncrypting || isSubmitting;
+  const isProcessing = step !== null;
   const submitSuccess = result !== null;
 
   const resetAll = () => {
-    keyMutation.reset();
-    encryptMutation.reset();
-    submitMutation.reset();
     setResult(null);
     setSubmitError(null);
     setStep(null);
@@ -54,10 +43,10 @@ export function SecurePayloadPage() {
 
     try {
       setStep('fetching-key');
-      const key = await keyMutation.mutateAsync();
+      const key = await getPublicKey();
 
       setStep('encrypting');
-      const encrypted = await encryptMutation.mutateAsync({
+      const encrypted = await encryptInWorker({
         publicKeyPem: key.public_key,
         payload: {
           name: values.name,
@@ -65,11 +54,9 @@ export function SecurePayloadPage() {
           device_id: values.device_id,
         },
       });
-      // Drop the cached mutation variables (they contain plaintext) right away.
-      encryptMutation.reset();
 
       setStep('submitting');
-      const response = await submitMutation.mutateAsync({
+      const response = await submitEncryptedPayload({
         partner_id: values.partner_id,
         encrypted_data: encrypted.encryptedData,
       });
@@ -83,7 +70,6 @@ export function SecurePayloadPage() {
       });
       return true;
     } catch (error) {
-      encryptMutation.reset();
       setSubmitError(toUserMessage(error));
       return false;
     } finally {

@@ -102,7 +102,6 @@ The backend rate limit is a per-partner token bucket (default: burst of 10, 10 r
 src/
 ├── api/          httpClient (fetch wrapper), keysApi, payloadApi
 ├── components/   Form, submit button, loading overlay, error banner, success result
-├── hooks/        usePublicKey, useEncryptPayload, useSubmitPayload
 ├── pages/        SecurePayloadPage
 ├── schemas/      Zod validation (securePayloadSchema)
 ├── services/     cryptoService (Web Crypto), workerService (worker bridge)
