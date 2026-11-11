@@ -72,7 +72,6 @@ class PayloadService:
             raise InvalidPayloadException("decrypted JSON is not an object")
 
         try:
-            print("Data :", data)
             pydentic_data = DecryptedPayload.model_validate(data)
             return pydentic_data
         except ValidationError as exc:
