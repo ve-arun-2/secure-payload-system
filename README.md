@@ -42,7 +42,7 @@ A FastAPI service organised as Clean Architecture (routes → services → adapt
 - **Safe logging:** JSON logs with a per-request ID. Aadhaar numbers, names, ciphertext and tokens are masked or redacted before they are written.
 - **Operations:** the pods hold no state, `/health` is a liveness probe, and Swagger is disabled in production.
 
-Details: [Payload-decryption-service/ARCHITECTURE.md](Payload-decryption-service/ARCHITECTURE.md)
+Details: [Payload-decryption-service/ARCHITECTURE.md](Payload-decryption-service/README.md)
 
 ### API
 
