@@ -360,13 +360,3 @@ Browsers: use WebCrypto `RSA-OAEP` with `hash: "SHA-256"`, which matches.
 
 Tests use `InMemoryCache` with a manual clock and a `FakeRabbitMQ`, so they are deterministic and offline.
 
----
-
-## 8. Known limitations / production checklist
-1. The Lua script and the RabbitMQ topology have not been exercised against real servers in this repo's test suite; run an integration check with `docker compose`.
-2. Mock keys in `keys/` are for development only; load real keys from a secrets manager or HSM and add key rotation (e.g. a `kid` in the request and key list in `KeyProvider`).
-3. No authentication/authorisation: `partner_id` is self-declared, so the rate limit is only as trustworthy as the caller. Add API keys, mTLS, or signed requests before real use.
-4. Replay protection (nonce/timestamp inside the encrypted payload) is not implemented.
-5. `/health` is liveness only; add a readiness probe that checks Redis and RabbitMQ.
-6. The event includes personal data (see 4.6).
-7. Metrics and tracing are placeholders.
