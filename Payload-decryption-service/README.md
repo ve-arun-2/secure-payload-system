@@ -175,7 +175,7 @@ scripts/generate_keys.py     Creates mock RSA key pair in keys/
 | **Schemas / models** | pydantic only | import services or adapters |
 | **Core** | stdlib, pydantic, FastAPI (exceptions only) | depend on services |
 
-`PayloadService` depends on the `EventPublisher` Protocol, not on `RabbitMQService`; `RateLimitService` depends on the cache's get/set/increment/token-bucket methods (`RedisCache`; tests use `tests/fakes.py` `InMemoryCache`), so tests need no Redis. That is why tests run with no infrastructure.
+`PayloadService` depends on the `EventPublisher` Protocol, not on `RabbitMQService`; `RateLimitService` depends on the cache's token-bucket method (`RedisCache`; tests use `tests/fakes.py` `InMemoryCache`), so tests need no Redis. That is why tests run with no infrastructure.
 
 ---
 
@@ -219,7 +219,7 @@ retry_after = (1 − tokens) / refill_per_second   (when rejected)
 
 Effect: a partner may burst 10 requests, then sustain 10 requests/second.
 
-**`RedisCache` methods:** `get`, `set`, `increment`, plus `consume_token_bucket`, `ping`, `close`. The bucket method exists because get-then-set from several pods would race.
+**`RedisCache` methods:** `consume_token_bucket`, `ping`, `close`. The bucket is a single atomic method because a separate get-then-set from several pods would race.
 
 **`RedisCacheImpl`:** runs a Lua script (`HMGET` → refill → consume → `HSET` → `EXPIRE`) atomically in Redis. It uses Redis `TIME` as the clock (immune to pod clock skew) and sets a TTL of `capacity/rate + 2` seconds so idle buckets disappear. Key: `rate_limit:{partner_id}`; Redis errors become `CacheUnavailableException`.
 

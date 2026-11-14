@@ -1,8 +1,8 @@
 """Redis-backed cache.
 
-Besides the requested get/set/increment it exposes `consume_token_bucket`, because a
-token bucket needs a *single atomic* read-modify-write: doing get() then set()
-from several pods would race and let bursts through.
+Exposes `consume_token_bucket` as a single atomic Lua script, because a token
+bucket needs an atomic read-modify-write: doing a separate GET then SET from
+several pods would race and let bursts through.
 """
 
 import redis.asyncio as aioredis
@@ -64,30 +64,12 @@ class RedisCache:
         self._client = aioredis.from_url(url, decode_responses=True, socket_timeout=1.0, socket_connect_timeout=1.0)
         self._token_bucket = self._client.register_script(_TOKEN_BUCKET_LUA)
 
-    async def get(self, key: str) -> str | None:
-        try:
-            return await self._client.get(key)
-        except RedisError as exc:
-            raise self._unavailable(exc) from exc
-
-    async def set(self, key: str, value: str, ttl_seconds: int | None = None) -> None:
-        try:
-            await self._client.set(key, value, ex=ttl_seconds)
-        except RedisError as exc:
-            raise self._unavailable(exc) from exc
-
-    async def increment(self, key: str, amount: int = 1) -> int:
-        try:
-            return int(await self._client.incrby(key, amount))
-        except RedisError as exc:
-            raise self._unavailable(exc) from exc
-
     async def consume_token_bucket(
         self, key: str, capacity: int, refill_per_second: float, cost: int = 1
     ) -> BucketDecision:
         # Idle buckets are refilled to full after capacity/rate seconds; keep the key a bit
         # longer than that and let Redis evict it, so memory is bounded by *active* partners.
-        ttl = int(capacity / refill_per_second) + 2
+        ttl = 5
         try:
             allowed, tokens, retry_after = await self._token_bucket(
                 keys=[key], args=[capacity, refill_per_second, cost, ttl]

@@ -65,6 +65,7 @@ Details: [Payload-decryption-service/ARCHITECTURE.md](Payload-decryption-service
 ## Things can be improved for production
 - **Mock keys are for development only.** Load production keys from a secrets manager or KMS key, and add key rotation.
 - **RSA payload size limit.** RSA-OAEP/SHA-256 encrypts at most `key bytes − 66` bytes (190 for a 2048-bit key). The client caps field lengths to stay within that. Larger payloads need hybrid encryption (an RSA + AES-GCM key).
+- **Run RabbitMQ/Kafka on separate instance** For production keep running rabbitmq on different server, failing RabbitMQ server will not effect application server & user can send their request seamlessly.
 - **Metrics and tracing are placeholders.**
 
 ## Repository layout
